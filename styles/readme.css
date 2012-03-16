@@ -1,0 +1,21 @@
+#readme_icon{
+	top:0px;
+	right:0px;
+	position: absolute;
+	z-index: 1;
+}
+
+#readme_content{
+	display:none;
+}
+
+.any_hot_key, #readme_content .hot_key {
+	padding: 0 4px;font-weight: bold;font-size: 20px;
+	border-radius: 20px;background-color: yellow;color: red;height: 25px;line-height: 25px;opacity: 0.95;
+	display: inline;
+}
+
+#readme_content {
+	font-size: 15px;
+	line-height: 25px;
+}

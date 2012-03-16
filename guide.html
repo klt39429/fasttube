@@ -1,0 +1,440 @@
+<html>
+<head>
+  <title>YouTube Data API via JSON: embedding videos in your site</title>
+  <script type="text/javascript" src="http://swfobject.googlecode.com/svn/trunk/swfobject/swfobject.js"></script>
+  <script type="text/javascript">
+function loadVideo(playerUrl, autoplay) {
+  swfobject.embedSWF(
+      playerUrl + '&rel=1&border=0&fs=1&autoplay=' + 
+      (autoplay?1:0), 'player', '290', '250', '9.0.0', false,
+      false, {allowfullscreen: 'true'});
+}
+
+function showMyVideos(data) {
+  var feed = data.feed;
+  var entries = feed.entry || [];
+  var html = ['<ul>'];
+  for (var i = 0; i < entries.length; i++) {
+    var entry = entries[i];
+    var title = entry.title.$t;
+    html.push('<li>', title, '</li>');
+  }
+  html.push('</ul>');
+  document.getElementById('videos').innerHTML = html.join('');
+}
+
+function showMyVideos2(data) {
+  var feed = data.feed;
+  var entries = feed.entry || [];
+  var html = ['<ul class="videos">'];
+  for (var i = 0; i < entries.length; i++) {
+    var entry = entries[i];
+    var title = entry.title.$t.substr(0, 20);
+    var thumbnailUrl = entries[i].media$group.media$thumbnail[0].url;
+    var playerUrl = entries[i].media$group.media$content[0].url;
+    html.push('<li onclick="loadVideo(\'', playerUrl, '\', true)">',
+              '<span class="titlec">', title, '...</span><br /><img src="', 
+              thumbnailUrl, '" width="130" height="97"/>', '</span></li>');
+  }
+  html.push('</ul><br style="clear: left;"/>');
+  document.getElementById('videos2').innerHTML = html.join('');
+  if (entries.length > 0) {
+    loadVideo(entries[0].media$group.media$content[0].url, false);
+  }
+}
+
+</script>
+<script src="http://www.google.com/uds/api?file=uds.js&v=1.0"
+    type="text/javascript"></script>
+<link href="http://www.google.com/uds/css/gsearch.css"
+    rel="stylesheet" type="text/css"/>
+<script src="http://www.google.com/uds/solutions/videobar/gsvideobar.js"
+    type="text/javascript"></script>
+<link href="http://www.google.com/uds/solutions/videobar/gsvideobar.css"
+    rel="stylesheet" type="text/css"/>
+<style>
+pre {
+  background-color:#FAFAFA;
+  border:1px solid #BBBBBB;
+  font-size:9pt;
+  line-height:125%;
+  margin:1em 0pt 0pt;
+  overflow:auto;
+  padding:0.99em;
+}
+code, pre {
+  color:#007000;
+  font-family:monospace;
+}
+.titlec {
+  font-size: small;
+}
+ul.videos li {
+  float: left;
+  width: 10em;
+  margin-bottom: 1em;
+}
+ul.videos
+{
+  margin-bottom: 1em;
+  padding-left : 0em;
+  margin-left: 0em;
+  list-style: none;
+}
+#videoBar {
+  width : 160px;
+  margin-right: 5px;
+  margin-left: 5px;
+  padding-top : 4px;
+  padding-right : 4px;
+  padding-left : 4px;
+  padding-bottom : 0px;
+}
+</style>
+</head>
+<body>
+  <h1>YouTube Data API via JSON: embedding videos in your site</h1>
+  <p>
+  The <a href="http://code.google.com/apis/youtube/developers_guide_protocol.html">YouTube Data API</a>
+  normally outputs information about videos, playlists, subscriptions, 
+  user profiles and more in the format of Atom feeds.  However, due to 
+  cross-domain restrictions, it's not very easy to retrieve and parse XML
+  data on remote servers from within JavaScript.  Because of this, most 
+  Google Data APIs also 
+  <a href="http://code.google.com/apis/gdata/json.html">provide JSON</a> as an
+  alternative output format.  JSON is short for <a href="http://www.json.org/"> JavaScript Object Notation</a> 
+  and enables cross-domain retrieval of data from the Data APIs.
+  </p>
+  <ul>
+    <li><a href="#capabilities">Capabilities</a></li>
+    <li><a href="#requirements">Requirements</a></li>
+    <li><a href="#how">How does it work?</a></li>
+    <li><a href="#callback">What's the callback function look like?</a></li>
+    <li><a href="#complete">The complete picture</a></li>
+      <ul>
+        <li><a href="#complete-demo">Demo</a></li>
+        <li><a href="#complete-source">Source</a></li>
+      </ul></li>
+    <li><a href="#attractive">Making it more attractive</a>
+      <ul>
+        <li><a href="#attractive-demo">Demo</a></li>
+        <li><a href="#attractive-source">Source</a></li>
+      </ul></li>
+    <li><a href="#onyourown">On your own</a></li>
+    <li><a href="#easier">Want something a little easier?</a>
+      <ul>
+        <li><a href="#easier-demo">Demo</a></li>
+        <li><a href="#easier-source">Source</a></li>
+      </ul></li>
+  </ul>
+  <h2 id="capabilities">Capabilities</h2>
+  <p>
+  Read-only unauthenticated access to public data served from the 
+  <a href="http://code.google.com/apis/youtube/developers_guide_protocol.html">YouTube Data API</a>.
+  </p>
+  <h2 id="requirements">Requirements</h2>
+  <p>
+  Nothing!  Well, a browser and a web server that'll serve static HTML
+  </p>
+  <h2 id="how">How does it work?</h2>
+  <p>
+  You only need two things:
+  </p>
+  <ul>
+    <li>a URL for the feed you want to retrieve 
+        (<i>example: http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads</i>)
+    </li>
+    <li>a callback function for processing the data
+        (<i>example: showMyVideos(data)</i>)
+    </li>
+  </ul>
+  <p>
+  These bits of information are combined together to create a 
+  <code>&lt;script&gt;</code> tag.  An example:</p>
+  <pre>&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads?alt=json-in-script&amp;format=5&amp;callback=showMyVideos"&gt;
+&lt;/script&gt;</pre>
+  <p>
+  Adding this tag to your page will retrieve a feed of the embeddable 
+  videos belong to 
+  the user <code>GoogleDevelopers</code> and, after the feed is retrieved,
+  call the <code>showMyVideos</code> function with the data returned.
+  </p>
+  <h2 id="callback">What's the callback function look like?</h2>
+  <p>
+  The callback function can be really simple or very complex depending on what
+  you would like to do with the data returned.  Let's start off with a simple
+  example that creates an unordered list of the videos in the 
+  <code>GoogleDevelopers</code> account.  
+  </p>
+  <pre>function showMyVideos(data) {
+  var feed = data.feed;
+  var entries = feed.entry || [];
+  var html = ['&lt;ul&gt;'];
+  for (var i = 0; i &lt; entries.length; i++) {
+    var entry = entries[i];
+    var title = entry.title.$t;
+    html.push('&lt;li&gt;', title, '&lt;/li&gt;');
+  }
+  html.push('&lt;/ul&gt;');
+  document.getElementById('videos').innerHTML = html.join('');
+} </pre>
+  <h2 id="complete">The complete picture</h2>
+  <h3 id="complete-demo">Demo:</h3>
+  <div id="videos"></div>
+  <script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads?alt=json-in-script&format=5&callback=showMyVideos">
+  </script>
+  <h3 id="complete-source">Source:</h3>
+  <div id="theHTML">
+<pre>
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;My Videos&lt;/title&gt;
+&lt;script type="text/javascript"&gt;
+function showMyVideos(data) {
+  var feed = data.feed;
+  var entries = feed.entry || [];
+  var html = ['&lt;ul&gt;'];
+  for (var i = 0; i &lt; entries.length; i++) {
+    var entry = entries[i];
+    var title = entry.title.$t;
+    html.push('&lt;li&gt;', title, '&lt;/li&gt;');
+  }
+  html.push('&lt;/ul&gt;');
+  document.getElementById('videos').innerHTML = html.join('');
+}
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="videos" /&gt;
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads?alt=json-in-script&amp;format=5&amp;callback=showMyVideos"&gt;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  </div>
+  <h2 id="attractive">Making it more attractive</h2>
+  <p>
+  YouTube is all about videos.  Videos should contain pictures and sound-- 
+  so why are we just outputting a boring list of videos?  You have a good
+  point, so let's jazz this up a bit!
+  </p>
+  <p>
+  The following example uses the value of the MediaRSS thumbnails,
+  MediaRSS content and MediaRSS player. These values are in each video
+  entry as <code>media$group.media$thumbnail[]</code> and
+  <code>media$group.media$player</code>.
+  </p>
+  <h3 id="attractive-demo">Demo:</h3>
+  <div id="playerContainer" style="width: 20em; height: 180px; float: left;">
+    <object id="player"></object>
+  </div>
+  <div id="videos2"></div>
+  <script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads?alt=json-in-script&callback=showMyVideos2&format=5&max-results=30">
+  </script>
+  <h3 id="attractive-source">Source:</h3>
+  <pre>
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;My Videos&lt;/title&gt;
+&lt;style&gt;
+.titlec {
+  font-size: small;
+}
+ul.videos li {
+  float: left;
+  width: 10em;
+  margin-bottom: 1em;
+}
+ul.videos
+{
+  margin-bottom: 1em;
+  padding-left : 0em;
+  margin-left: 0em;
+  list-style: none;
+}
+&lt;/style&gt;
+&lt;script type="text/javascript" src="http://swfobject.googlecode.com/svn/trunk/swfobject/swfobject.js"&gt;&lt;/script&gt;
+&lt;script type="text/javascript"&gt;
+function loadVideo(playerUrl, autoplay) {
+  swfobject.embedSWF(
+      playerUrl + '&amp;rel=1&amp;border=0&amp;fs=1&amp;autoplay=' + 
+      (autoplay?1:0), 'player', '290', '250', '9.0.0', false, 
+      false, {allowfullscreen: 'true'});
+}
+
+function showMyVideos2(data) {
+  var feed = data.feed;
+  var entries = feed.entry || [];
+  var html = ['&lt;ul class="videos"&gt;'];
+  for (var i = 0; i &lt; entries.length; i++) {
+    var entry = entries[i];
+    var title = entry.title.$t.substr(0, 20);
+    var thumbnailUrl = entries[i].media$group.media$thumbnail[0].url;
+    var playerUrl = entries[i].media$group.media$content[0].url;
+    html.push('&lt;li onclick="loadVideo(\'', playerUrl, '\', true)"&gt;',
+              '&lt;span class="titlec"&gt;', title, '...&lt;/span&gt;&lt;br /&gt;&lt;img src="', 
+              thumbnailUrl, '" width="130" height="97"/&gt;', '&lt;/span&gt;&lt;/li&gt;');
+  }
+  html.push('&lt;/ul&gt;&lt;br style="clear: left;"/&gt;');
+  document.getElementById('videos2').innerHTML = html.join('');
+  if (entries.length &gt; 0) {
+    loadVideo(entries[0].media$group.media$content[0].url, false);
+  }
+}
+&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="playerContainer" style="width: 20em; height: 180px; float: left;"&gt;
+    &lt;object id="player"&gt;&lt;/object&gt;
+&lt;/div&gt;
+&lt;div id="videos2"&gt;&lt;/div&gt;
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/users/GoogleDevelopers/uploads?alt=json-in-script&amp;callback=showMyVideos2&amp;max-results=30"&gt;
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+<h2 id="onyourown">On your own</h2>
+<p>
+The easiest way to get started using the JSON output from the YouTube Data
+API is to copy and paste one of the examples above and modify it to fit your
+needs.  While the JSON output from the API looks very similar to the XML 
+output, it's still often helpful to use a debugger such as 
+<a href="http://getfirebug.com/">Firebug</a> to look at the JSON returned
+from the server and find the data you need for your application.  If you have
+any questions about how to use the JSON output feature, please post a message
+on the <a href="http://groups.google.com/group/youtube-api">YouTube APIs developer forum</a>.
+</p>
+<p>
+The example above currently includes the videos from the GoogleDevelopers YouTube channel.  You can easily change the source by changing the <code>script</code> tag's <code>src</code> attribute, or by adding a function that does dynamic script injection.  Here's some example <code>script</code> tags:
+</p>
+<h3>30 videos which match the word 'puppy':</h3>
+<pre>
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/api/videos?q=puppy&amp;alt=json-in-script&amp;callback=showMyVideos2&amp;max-results=30&amp;format=5"&gt;
+&lt;/script&gt; </pre>
+<h3>Most viewed videos this week:</h3>
+<pre>
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/api/standardfeeds/most_viewed?time=this_week&amp;alt=json-in-script&amp;callback=showMyVideos2&amp;max-results=30&amp;format=5"&gt;
+&lt;/script&gt; </pre>
+<h3>Most viewed videos in Japan today:</h3>
+<pre>
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/api/standardfeeds/JP/most_viewed?time=today&amp;alt=json-in-script&amp;callback=showMyVideos2&amp;max-results=30&amp;format=5"&gt;
+&lt;/script&gt; </pre>
+<h3>Videos which are tagged with the word 'goldendoodle':</h3>
+<pre>
+&lt;script 
+    type="text/javascript" 
+    src="http://gdata.youtube.com/feeds/api/videos/-/goldendoodle?alt=json-in-script&amp;callback=showMyVideos2&amp;max-results=30&amp;format=5"&gt;
+&lt;/script&gt; </pre>
+<p> 
+For more information on the types of feeds availalble, please see the <a href="http://code.google.com/apis/youtube/reference.html">Reference Guide</a>.
+</p>
+<p>
+A more advanced 
+<a href="http://gdata.ops.demo.googlepages.com/video_browser.html">YouTube Video Browser</a>
+allows the user to browse thumbnails of related videos, select standard feeds 
+and query the feeds using search terms.
+</p>
+<h2 id="easier">Want something a little easier?</h2>
+<p>
+The AJAX Search Video Bar allows you to embed a bar of your YouTube videos
+onto your site with ease.
+</p>
+<h3 id="easier-demo">Demo:</h3>
+<div id="videoBar">Loading...</div>
+<script type="text/javascript">
+// Create a Video Bar with a floating, auto-positioned player
+vbr = new GSvideoBar(
+            document.getElementById("videoBar"),
+            GSvideoBar.PLAYER_ROOT_FLOATING,
+            {horizontal: true, largeResultSet: false}
+            );
+vbr.execute('ytchannel:GoogleDevelopers');
+</script>
+<h3 id="easier-source">Source:</h3>
+<p>
+Head over to the 
+<a href="http://www.google.com/uds/solutions/wizards/videobar.html">Video Bar wizard</a>
+and configure some of the Video Bar parameters.  It'll generate the code for 
+you.
+</p>
+<p>  
+Here's what the code for the bar above looks like:
+</p>
+<pre>&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;My Videos&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!--
+  // The Following div element will end up holding the actual videobar.
+  // You can place this anywhere on your page.
+  --&gt;
+  &lt;div id="videoBar-bar"&gt;
+    &lt;span style="color:#676767;font-size:11px;margin:10px;padding:4px;"&gt;Loading...&lt;/span&gt;
+
+  &lt;/div&gt;
+
+  &lt;!-- Ajax Search Api and Stylesheet
+  // Note: If you are already using the AJAX Search API, then do not include it
+  //       or its stylesheet again
+  --&gt;
+  &lt;script src="http://www.google.com/uds/api?file=uds.js&amp;v=1.0&amp;source=uds-vbw"
+    type="text/javascript"&gt;&lt;/script&gt;
+  &lt;style type="text/css"&gt;
+    @import url("http://www.google.com/uds/css/gsearch.css");
+  &lt;/style&gt;
+
+  &lt;!-- Video Bar Code and Stylesheet --&gt;
+  &lt;script type="text/javascript"&gt;
+    window._uds_vbw_donotrepair = true;
+  &lt;/script&gt;
+  &lt;script src="http://www.google.com/uds/solutions/videobar/gsvideobar.js?mode=new"
+    type="text/javascript"&gt;&lt;/script&gt;
+  &lt;style type="text/css"&gt;
+    @import url("http://www.google.com/uds/solutions/videobar/gsvideobar.css");
+  &lt;/style&gt;
+  &lt;style type="text/css"&gt;
+    .playerInnerBox_gsvb .player_gsvb {
+      width : 320px;
+      height : 260px;
+    }
+  &lt;/style&gt;
+  &lt;script type="text/javascript"&gt;
+    function LoadVideoBar() {
+    var videoBar;
+    var options = {
+        largeResultSet : !<span id="go1">true</span>,
+        horizontal : <span id="go2">true</span>,
+        autoExecuteList : {
+          cycleTime : GSvideoBar.CYCLE_TIME_MEDIUM,
+          cycleMode : GSvideoBar.CYCLE_MODE_LINEAR,
+          executeList : <span id="gse">["ytchannel:GoogleDevelopers"]</span>
+        }
+      }
+    videoBar = new GSvideoBar(document.getElementById("videoBar-bar"),
+                              GSvideoBar.PLAYER_ROOT_FLOATING,
+                              options);
+    }
+    // arrange for this function to be called during body.onload
+    // event processing
+    GSearch.setOnLoadCallback(LoadVideoBar);
+  &lt;/script&gt;
+&lt;!-- ++End Video Bar Wizard Generated Code++ --&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</body>
+</html>

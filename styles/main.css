@@ -1,0 +1,177 @@
+.related_video {
+	height: 100px; 
+	width:300px;
+	padding:1px;
+	display: inline-block;}
+
+.related_video:HOVER {
+	cursor: pointer;
+	background-color: rgb(231,231,231);}
+
+.related_video .thumbnail {
+	width: 130px;
+	position: relative;
+	float: left;}
+
+.related_video .thumbnail img {
+	height: 90px; 
+	width:120px; 
+	margin: 5px; 
+	display: inline;}
+
+.related_video .video_time {
+	padding: 0 4px;font-weight: bold;font-size: 11px;
+	border-radius: 3px;background-color: black;color: white!important;height: 14px;line-height: 14px;opacity: 0.75;
+	display: inline-block;vertical-align: top;
+	right: 7px;bottom: 7px;position: absolute;}
+
+.related_video .hot_key {
+	padding: 0 4px;font-weight: bold;font-size: 20px;
+	border-radius: 20px;background-color: yellow;color: red;height: 25px;line-height: 25px;opacity: 0.95;
+	display: inline-block;vertical-align: top;
+	right: -2px;top: -2px;position: absolute;
+}
+
+
+
+
+
+.related_video .information {
+	position: relative;
+	float: right;
+	width: 165px;
+	margin-top: 6px;
+}
+	
+.related_video .title {
+	width: auto;
+	font-size: 15px;
+	font-weight: bold;
+	line-height: 15px;
+	text-decoration: none;
+	max-height: 30px;
+	color: #111;
+	overflow: hidden;
+	display: block;
+	
+}
+
+.related_video .view_count {
+	display: block;
+	font-size: 11px;
+	color: #666;
+	line-height: 1.4em;
+	height: 1.4em;
+	overflow: hidden;
+	margin-top: 3px;
+}
+
+.related_video .progress_bar, .play_video_block .play_video_likes {
+	margin-top: 5px;
+	height: 5px;
+	max-height: 5px;
+	background: red;
+}
+
+.related_video .progress_bar div, .play_video_block .play_video_likes div {
+	background: green;
+}
+
+.related_video_block {
+	position: relative;
+	top: 5px;
+	right:0px;
+	width:300px;
+	float: right;
+}
+
+.play_video_block {
+	position: relative;
+	top:5px;
+	left: 5px;
+	width: 650px;
+	float: left;
+}
+
+.main_block {
+	margin-left: auto;
+	margin-right: auto;
+	width: 1000px;
+	display: block;
+	font-family: arial, sans-serif;
+}
+
+.play_video_title {
+	font-weight: bold;
+	color: #333;
+	font-size: 22px;
+	margin-left: 5px;
+	margin-bottom: 10px;
+}
+
+.play_video_block #player{
+	margin-bottom: 15px;
+}
+
+.play_video_block .play_video_description{
+	float: left;
+	width: 370px;
+	margin: 5px;
+	margin-right: 20px;
+	color: #333;
+	font-size: 13px;
+}
+
+.play_video_block .play_video_views{
+	display: block;
+	text-align: right;
+	color: #333;
+	font-size: 22px;
+}
+
+.play_video_block .likes_text, .related_video .likes_text {
+	display: block;
+	font-size: 11px;
+	color: #666;
+	line-height: 1.4em;
+	height: 1.4em;
+	overflow: hidden;
+	margin-top: 3px;	
+}
+
+.play_video_block .play_video_statistics{
+	float: right;
+	width: 220px;
+	margin: 5px;
+}
+
+#header {
+	margin-top: 5px;
+	width: 100%;
+	height: 50px;
+	background-color: rgb(38, 38, 38);
+	display: table;
+	text-align: left;
+}
+
+#header #title{ 
+	display: table-cell; 
+	vertical-align: middle; 
+	text-align: center;
+	color: white;
+	font-size: 40px;
+	font-family: monospace;
+	padding-left: 50px;
+	text-align: left;
+	font-weight: bold;
+	margin-top: expression(this.offsetHeight < this.parentNode.offsetHeight ? parseInt((this.parentNode.offsetHeight - this.offsetHeight) / 2) + "px" : "0");
+}
+
+#search_tip {
+	display: table-cell; 
+	vertical-align: middle; 
+	text-align: center;
+	padding-right: 200px;
+	color: white;
+	font-size: 20px;
+}
